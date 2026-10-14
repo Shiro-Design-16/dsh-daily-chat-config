@@ -363,7 +363,7 @@ function settingsServer(initial) {
     assert.ok(offline.registration, 'the page never registered');
     const { options } = offline.registration;
     assert.strictEqual(options.name, 'plugins.bundle.config');
-    assert.strictEqual(options.key, '@local/dsh-daily-chat-config');
+    assert.strictEqual(options.key, 'dsh-daily-chat-config');
     assert.strictEqual(options.label(), copyOf(offline).zh.nav);
     assert.strictEqual(options.id, undefined, 'a keyed seat carries no list id');
     assert.strictEqual(options.order, undefined, 'a keyed seat carries no list order');

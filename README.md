@@ -1,11 +1,11 @@
 # daily-chat-config
 
-在**插件页**本插件那一栏里给 `daily` agent preset 开一个编辑卡片（「日常配置」）：显示**当前生效**的子条目列表
-（`preset-daily` 行 `config.plugins`）的 entry-list YAML 文本 —— persona 与工具组合就在这一层 ——
-「保存」把它写进本插件的设置字段（走官方设置服务，落在 profile patch 层里本插件那一行），
-「恢复默认」把该字段写空，宿主半据此把上游默认挂回运行中的 preset。
+给 DSH 的 `daily` agent preset 加一个编辑入口：**「插件」页 → 本插件那一栏 →「日常配置」**。卡片里显示
+当前生效的子条目列表（`preset-daily` 行的 `config.plugins`）的 entry-list YAML 文本，persona 与工具组合
+都在这一层。点「保存」把它写进本插件的设置字段（走官方设置服务，落在 profile patch 层里本插件那一行），
+点「恢复默认」把字段写空，宿主半随即把上游默认挂回运行中的 preset。
 
-它不改任何人发布的文件：不碰 `@local/dsh-daily-chat`，不碰 `node_modules`，也不写 DSH 安装目录。
+整个过程不碰任何已发布的文件：上游包 `@local/dsh-daily-chat`、`node_modules` 与 DSH 安装目录都保持原样。
 
 ## 环境要求
 
@@ -20,7 +20,7 @@
 | --- | --- | --- |
 | 宿主 | `index.js` | 设置字段 `yaml`（`.volatile()` 字符串 = 子条目列表 YAML）+ 把它应用到 `preset-daily` 行（`entry.fiber.update(config, true)` 内存挂载；不碰任何文件） |
 | 宿主 | `cordis.patch.yml` | bundle 补丁层，只插入宿主半边一行（客户端半边由 `package.json` 的 `dsh.client` 声明，不需要另开一行） |
-| 宿主 | `package.json` | 包名 `@local/dsh-daily-chat-config`、`dsh.bundle.patch`、`dsh.client`（web 平台 + 客户端模块依赖） |
+| 宿主 | `package.json` | 包名 `dsh-daily-chat-config`、`dsh.bundle.patch`、`dsh.client`（web 平台 + 客户端模块依赖） |
 | 客户端 | `client.js` | **插件页**本插件那一栏的「日常配置」卡片（keyed 根槽 `plugins.bundle.config`）：textarea + 保存 / 恢复默认 + 状态行；值走**内置** `remote.settings`，设置服务或本插件设置项缺失时降级为只读提示 |
 | 客户端 | `test/client-harness.mjs` | `client.js` 的自检 harness（stub loader + 手写 hook 运行时 + 官方 `settings` remote 桩，不安装、不联网） |
 
@@ -29,24 +29,33 @@
 
 ## 安装
 
-profile 是 `$DSH_HOME/profiles/<name>`（默认的桌面 profile 是 `~/.dsh/profiles/desktop`）。三种等价做法：
+profile 在 `$DSH_HOME/profiles/<name>`（桌面的默认 profile 是 `~/.dsh/profiles/desktop`）。推荐走「插件」页：
 
-- 「插件」页里添加本仓库 —— 联网时填 `github:Shiro-Design-16/dsh-daily-chat-config`，填本地目录则会被写成 `link:` 依赖；
-- 或直接编辑 profile 的 `package.json`，加 `"@local/dsh-daily-chat-config": "github:Shiro-Design-16/dsh-daily-chat-config"`（本地开发改成 `link:<克隆到本地的路径>`）；
-- 再把它加进 bundle 清单，然后在 profile 目录跑一次包管理安装，最后重启 DSH。
+1. 「插件」页添加插件，填 `github:Shiro-Design-16/dsh-daily-chat-config`（也可以填本地克隆目录 —— 后者会被写成 `link:` 依赖）；
+2. 重启 DSH；
+3. 「插件」页 → 本插件那一栏 →「日常配置」。
 
-安装会把声明的依赖 `yaml` 装进 profile 的 `node_modules`；`@deepseek-ai/schemastery` 与 `@deepseek-ai/cordis` 由宿主
-运行时提供、**故意不声明成依赖** —— 声明会从 registry 装公共包，而只有 DSH 的 schemastery 会把 `.volatile()`
-字段包成 cosmokit `Volatile` 引用（见「已知限制」）。
+命令行等价做法：
 
-重启后：插件 → 本插件那一栏 →「日常配置」。
+```sh
+dsh plugin --profile desktop add github:Shiro-Design-16/dsh-daily-chat-config
+```
+
+它装依赖，并把包名同步进 `$DSH_HOME/profiles/<name>/package.json` 的 `dsh.profile.bundles`。如果你不用命令行、
+而是自己动手改 manifest（依赖写 `github:` 还是本地 `link:` / `file:` 都行），那这两处都要照顾到：`dependencies`
+里有一条同名依赖，`dsh.profile.bundles` 里也要有这个名字。只改了依赖没进 bundle 清单、或者清单里留着旧名字，
+启动日志会报一行 `skipping profile bundle …`：插件不生效，也不影响启动（这行警告是 stderr 打的，日志里能找到）。
+
+装完 `yaml` 会出现在 profile 的 `node_modules` 里；`@deepseek-ai/schemastery` 与 `@deepseek-ai/cordis` 由宿主运行时
+提供、**故意不声明成依赖** —— 一旦声明就会从公共 registry 装一份普通包，而只有 DSH 的 schemastery 会把
+`.volatile()` 字段包成 cosmokit `Volatile` 引用（见「已知限制」）。
 
 ## 契约
 
 契约分两面：宿主半边 = 本插件的设置字段（见下），客户端半边 = 用**内置**的 remote 命名空间 `settings` 读写它。
 
 面板的坐席是**插件页**：注册进 keyed 根槽 `plugins.bundle.config`，key = 本包 `package.json` 里的 `name`
-（`@local/dsh-daily-chat-config`），由插件管理器按 bundle 行派发；owner 传下来的 props（`view` / `entryKey`）
+（`dsh-daily-chat-config`，就是本包的包名），由插件管理器按 bundle 行派发；owner 传下来的 props（`view` / `entryKey`）
 用不到就忽略。它**故意不占设置页**：`settings.section` 是设置外壳给自己那排页面（account / general / models /
 Agent 预设）用的列表槽，第三方 bundle 不该在中间插一个导航坐席，而「插件」条目本来就是展示与配置各 bundle 的地方。
 
@@ -146,6 +155,9 @@ Config = z.object({ yaml: z.transform(z.string(), …).default('').volatile() })
 
 - loader 里没有 `preset-daily` 行时（daily-chat 未装或被禁用）不推任何东西、只留一行 warning；行出现或激活后
   由 `loader/entry-init` 重扫补上（短时重试 40 × 50ms，之后交给事件）。
+- **包名换过之后**（`0.2.0` 起叫 `dsh-daily-chat-config`，之前是 `@local/dsh-daily-chat-config`）：用户层 patch
+  里那一行如果还写着旧 `name`，会因为名字断言不匹配被跳过（启动日志只有一行警告）。你保存过的文本仍在文件里，
+  但不会生效 —— 把那行的 `name` 改成 `dsh-daily-chat-config`（或直接删掉这个字段），或者到插件页里重新保存一次。
 - 宿主运行时依赖：`index.js` 从 `yaml` 与 `@deepseek-ai/schemastery` import。`.volatile()` 必须用 **DSH 的**
   schemastery —— 公共包会产生普通值，写入报成功而生效值不变（活例注释见 `dsh-better-sidebar/lib/index.js:56-63`）。
   已在 DSH `0.2.0-rc.2` 真机验证：装进隔离 profile 后启动无未激活条目，设置字段被读取，子列表被应用到
@@ -247,7 +259,7 @@ harness 在它上面伪造两种在场状态（有设置服务 / 没有）与三
 | N1b | 源码里出现的 remote 命名空间只有内置的 `remote.settings`（自建 ns 已彻底消失） |
 | N2 | 在**什么服务都没有**的 ctx 上 `apply()` 不抛 |
 | N2b | 延迟服务确实是通过 `ctx.inject([...], cb)` 回调形式取用的 |
-| N3 | 注册进 keyed 根槽 `plugins.bundle.config`，`key` 恰为 `@local/dsh-daily-chat-config`，label「日常配置」 |
+| N3 | 注册进 keyed 根槽 `plugins.bundle.config`，`key` 恰为 `dsh-daily-chat-config`，label「日常配置」 |
 | N3b | 旧的 `settings.section` 坐席已彻底消失（源码与注册项都不再出现） |
 | N3c | 取服务只查 `remote.settings` 这一个名字 |
 | N4 | 没有设置服务时 `describe` / `update` / `reset` 全部 reject，`error.code === 'daily-config-no-settings'` |

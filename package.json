@@ -1,8 +1,7 @@
 {
-  "name": "@local/dsh-daily-chat-config",
-  "version": "0.1.0",
-  "private": true,
-  "description": "在插件页里编辑 daily agent preset 的子条目列表（persona 与工具组合），内存挂载生效，不写任何文件",
+  "name": "dsh-daily-chat-config",
+  "version": "0.2.0",
+  "description": "在「插件」页里编辑 daily agent preset 的子条目列表（persona 与工具组合），内存挂载生效，不写任何文件 —— Edit the daily agent preset's sub-entry list from DSH's Plugins page (in-memory, writes no files)",
   "license": "MIT",
   "author": "Shiro-Design-16",
   "repository": {
@@ -21,6 +20,13 @@
     ".": "./index.js",
     "./client": "./client.js"
   },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"

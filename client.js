@@ -62,7 +62,7 @@
  */
 
 window.__ModuleLoader__.load({
-  id: '@local/dsh-daily-chat-config',
+  id: 'dsh-daily-chat-config',
   factory(require) {
     const React = require('react');
     const h = React.createElement;
@@ -78,7 +78,7 @@ window.__ModuleLoader__.load({
      * The dispatch key — byte-identical to this bundle's `package.json` name,
      * because the owner keys every entry by `pkg.name`.
      */
-    const PLUGIN_KEY = '@local/dsh-daily-chat-config';
+    const PLUGIN_KEY = 'dsh-daily-chat-config';
     /** Class prefix for every node this page paints. */
     const CLASS = 'dsh-daily-config';
     /** Marks the injected style element so a reload can find it. */

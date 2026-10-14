@@ -2,4 +2,4 @@
 # 客户端半边由 package.json 的 dsh.client 声明（client bundle 不需要在这里另开一行）。
 - insert:
     - id: daily-chat-config
-      name: '@local/dsh-daily-chat-config'
+      name: 'dsh-daily-chat-config'
